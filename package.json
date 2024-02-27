@@ -1,0 +1,7 @@
+{
+	"name": "plugin-cli",
+	"version": "0.0.0",
+	"type": "module",
+	"bin": "index.js",
+	"files": ["index.js", "./bin/*"]
+}
