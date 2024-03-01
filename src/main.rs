@@ -142,7 +142,8 @@ fn main() {
                 "Creating archive for plugin \"{}\" with version \"{}\"",
                 metadata.name, metadata.version
             );
-            create_archive(path, metadata.name, metadata.version);
+            Command::new("bun").args(["run", "build"]).output().unwrap();
+            create_archive(path.join("build"), metadata.name, metadata.version);
             println!("{}", "Done!".green().bold());
         }
         Cli::Publish => {
