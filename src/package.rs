@@ -1,4 +1,9 @@
-use std::{env, fs::File, path::PathBuf, process};
+use std::{
+    env,
+    fs::File,
+    path::PathBuf,
+    process::{self, Command},
+};
 
 use ignore::Walk;
 use owo_colors::OwoColorize;
