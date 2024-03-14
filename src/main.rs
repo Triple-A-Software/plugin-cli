@@ -1,15 +1,18 @@
-use std::env;
-use std::fs::File;
 use std::path::PathBuf;
+use std::process;
 use std::process::Command;
 
 use clap::Parser;
+use config::Config;
+use config::ConfigDir;
 use ignore::overrides::OverrideBuilder;
 use ignore::Walk;
 use ignore::WalkBuilder;
 use inquire::{Confirm, Text};
 use owo_colors::colors::*;
 use owo_colors::OwoColorize;
+use package::handle_package_command;
+use publish::handle_publish_command;
 use semver::Version;
 use serde::Deserialize;
 use serde::Serialize;
@@ -17,11 +20,19 @@ use serde::Serialize;
 use crate::command::Cli;
 
 pub mod command;
+pub mod config;
+pub mod package;
+pub mod publish;
+pub mod store_api;
+pub mod utils;
 
 const TEMPLATE_REPO: &str = "https://github.com/Triple-A-Software/plugin-template";
 
 fn main() {
     let command = Cli::parse();
+
+    let user_config_dir = ConfigDir::new();
+    let mut user_config = Config::from(&user_config_dir);
 
     match command {
         Cli::Create {
@@ -55,7 +66,12 @@ fn main() {
                     .arg("1")
                     .status()
                     .unwrap_or_else(|_| {
-                        panic!("Could not clone template repository: {}", template)
+                        println!(
+                            "{} {}",
+                            "Could not clone template repository:".red(),
+                            template
+                        );
+                        process::exit(1);
                     });
                 std::fs::remove_dir_all(PathBuf::from(&name).join(".git")).unwrap();
             } else {
@@ -108,7 +124,10 @@ fn main() {
                     .arg("init")
                     .arg(&name)
                     .status()
-                    .unwrap_or_else(|_| panic!("Could not initialize git repository: {}", name));
+                    .unwrap_or_else(|_| {
+                        println!("{} {}", "Could not initialize git repository:".red(), name);
+                        process::exit(1);
+                    });
                 println!("Done!");
             }
             println!("{}", "–––––––––––––––––––––––––––".fg::<xterm::Gray>());
@@ -128,50 +147,26 @@ fn main() {
             println!("{}", "–––––––––––––––––––––––––––".fg::<xterm::Gray>());
         }
         Cli::Package { path } => {
-            let path = path
-                .unwrap_or_else(|| env::current_dir().expect("Could not get current directory"));
-            let metadata_path = path.join("plugin.json");
-            let metadata = if metadata_path.exists() {
-                let file = File::open(metadata_path).unwrap();
-                let metadata: PluginMetadata = serde_json::from_reader(file).unwrap();
-                metadata
-            } else {
-                panic!("Plugin metadata not found");
-            };
-            println!(
-                "Creating archive for plugin \"{}\" with version \"{}\"",
-                metadata.name, metadata.version
-            );
-            create_archive(path, metadata.name, metadata.version);
-            println!("{}", "Done!".green().bold());
+            handle_package_command(path);
         }
-        Cli::Publish => {
-            todo!("Not yet implemented")
-        }
-    }
-}
-
-fn create_archive(path: PathBuf, name: String, version: Version) {
-    let archive = File::create(format!("{name}-{version}.tar.gz")).unwrap();
-    let enc = flate2::write::GzEncoder::new(archive, flate2::Compression::default());
-    let mut tar = tar::Builder::new(enc);
-    for entry in Walk::new(&path) {
-        match entry {
-            Ok(entry) => {
-                let entry_path = entry.path();
-                if entry_path.is_dir() {
-                    continue;
-                }
-                tar.append_path_with_name(entry_path, entry_path.strip_prefix(&path).unwrap())
-                    .unwrap();
-            }
-            Err(err) => println!("Error: {}", err),
+        Cli::Publish { remote } => {
+            handle_publish_command(&mut user_config, user_config_dir, remote);
         }
     }
 }
 
 #[derive(Serialize, Deserialize)]
-struct PluginMetadata {
+pub struct PluginMetadata {
     name: String,
     version: Version,
+}
+
+impl PluginMetadata {
+    fn archive_name(&self) -> String {
+        format!(
+            "{name}-{version}.tar.gz",
+            name = self.name,
+            version = self.version
+        )
+    }
 }

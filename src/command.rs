@@ -22,5 +22,8 @@ pub enum Cli {
         path: Option<PathBuf>,
     },
     // TODO
-    Publish,
+    Publish {
+        /// the url to the plugin-store
+        remote: Option<String>,
+    },
 }
