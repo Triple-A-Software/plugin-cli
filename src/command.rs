@@ -20,6 +20,9 @@ pub enum Cli {
     Package {
         /// The path to the plugin project
         path: Option<PathBuf>,
+        /// Run `bun run build` before packaging?
+        #[arg(short, long)]
+        build: Option<bool>,
     },
     // TODO
     Publish {

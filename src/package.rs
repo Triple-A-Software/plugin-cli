@@ -5,7 +5,7 @@ use owo_colors::OwoColorize;
 
 use crate::PluginMetadata;
 
-pub fn handle_package_command(path: Option<PathBuf>) -> PluginMetadata {
+pub fn handle_package_command(path: Option<PathBuf>, build: bool) -> PluginMetadata {
     let path = path.unwrap_or_else(|| env::current_dir().expect("Could not get current directory"));
     let metadata_path = path.join("plugin.json");
     let metadata = if metadata_path.exists() {
@@ -20,6 +20,9 @@ pub fn handle_package_command(path: Option<PathBuf>) -> PluginMetadata {
         "Creating archive for plugin \"{}\" with version \"{}\"",
         metadata.name, metadata.version
     );
+    if build {
+        Command::new("bun").args(["run", "build"]).output().unwrap();
+    }
     create_archive(path, &metadata);
     println!("{}", "Done!".green().bold());
     metadata
