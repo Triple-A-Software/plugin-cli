@@ -14,8 +14,9 @@ pub fn handle_publish_command(
     user_config: &mut Config,
     user_config_dir: ConfigDir,
     remote: Option<String>,
+    build: bool,
 ) {
-    let metadata = handle_package_command(None); // package the current directory
+    let metadata = handle_package_command(None, build); // package the current directory
     println!("Publishing plugin...");
     let email = user_config.user.clone().unwrap_or_else(|| {
         let email = Text::new("Email").prompt().expect("Email is required");

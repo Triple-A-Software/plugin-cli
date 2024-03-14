@@ -149,8 +149,13 @@ fn main() {
         Cli::Package { path, build } => {
             handle_package_command(path, build.unwrap_or(true));
         }
-        Cli::Publish { remote } => {
-            handle_publish_command(&mut user_config, user_config_dir, remote);
+        Cli::Publish { remote, build } => {
+            handle_publish_command(
+                &mut user_config,
+                user_config_dir,
+                remote,
+                build.unwrap_or(true),
+            );
         }
     }
 }
