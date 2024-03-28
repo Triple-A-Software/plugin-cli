@@ -29,7 +29,9 @@ impl Client<NotLoggedIn> {
                 state: std::marker::PhantomData::<LoggedIn>,
             });
         }
-        cred_entry.delete_password().unwrap();
+        if cred_entry.get_password().is_ok() {
+            cred_entry.delete_password().unwrap();
+        }
         let body = json!({
             "email": email,
             "password": pw
