@@ -27,6 +27,7 @@ pub enum Cli {
     // TODO
     Publish {
         /// the url to the plugin-store
+        #[arg(short, long)]
         remote: Option<String>,
         /// Run `bun run build` before packaging?
         #[arg(short, long)]
