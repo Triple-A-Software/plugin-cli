@@ -28,7 +28,7 @@ pub fn handle_package_command(path: Option<PathBuf>, build: bool) -> PluginMetad
     if build {
         Command::new("bun").args(["run", "build"]).output().unwrap();
     }
-    create_archive(path, &metadata);
+    create_archive(if build { path.join("build") } else { path }, &metadata);
     println!("{}", "Done!".green().bold());
     metadata
 }
