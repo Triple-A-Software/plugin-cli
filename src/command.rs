@@ -19,6 +19,7 @@ pub enum Cli {
     /// Package the plugin into a distributable package
     Package {
         /// The path to the plugin project
+        #[arg(short, long)]
         path: Option<PathBuf>,
     },
     // TODO
