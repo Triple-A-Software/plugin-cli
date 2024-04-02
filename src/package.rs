@@ -10,8 +10,7 @@ use owo_colors::OwoColorize;
 use crate::{utils::SoftPanic, PluginMetadata};
 
 pub fn handle_package_command(path: PathBuf) -> PluginMetadata {
-    let metadata_path = path.join("plugin.json");
-    let metadata = PluginMetadata::read_from_dir(&metadata_path);
+    let metadata = PluginMetadata::read_from_dir(&path);
 
     println!(
         "Creating archive for plugin \"{}\" with version \"{}\"",
