@@ -48,6 +48,7 @@ fn create_archive(path: PathBuf, metadata: &PluginMetadata) {
 }
 
 fn build_plugin(path: &Path, metadata: &PluginMetadata) {
+    fs::remove_dir_all(path.join("build")).unwrap();
     let build_command = &metadata.build;
     fs::create_dir_all(path.join("build")).unwrap();
     if let Some(build_command) = build_command {
