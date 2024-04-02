@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     path::{Path, PathBuf},
-    process::{self, Command},
+    process::Command,
 };
 
 use ignore::Walk;
@@ -47,23 +47,19 @@ fn build_plugin(path: &Path, metadata: &PluginMetadata) {
     fs::create_dir_all(path.join("build")).unwrap();
     if let Some(build_command) = build_command {
         let mut build = build_command.split_whitespace();
-        Command::new(build.next().unwrap())
+        let mut running = Command::new(build.next().unwrap())
             .args(build)
             .current_dir(path)
-            .output()
-            .unwrap_or_else(|_| {
-                println!("Could not build plugin");
-                process::exit(1);
-            });
+            .spawn()
+            .soft_expect("Could not run build command");
+        running.wait().unwrap();
     } else {
-        Command::new("bun")
+        let mut running = Command::new("bun")
             .args(["build", ".", "--outdir", "./build"])
             .current_dir(path)
-            .output()
-            .unwrap_or_else(|_| {
-                println!("Could not build plugin");
-                process::exit(1);
-            });
+            .spawn()
+            .soft_expect("Could not build plugin");
+        running.wait().unwrap();
     };
     let plugin_json = path.join("plugin.json");
     let readme_md = path.join("readme.md");
