@@ -1,3 +1,6 @@
+use std::env;
+use std::fs::File;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process;
 use std::process::Command;
@@ -146,16 +149,14 @@ fn main() {
             );
             println!("{}", "–––––––––––––––––––––––––––".fg::<xterm::Gray>());
         }
-        Cli::Package { path, build } => {
-            handle_package_command(path, build.unwrap_or(true));
+        Cli::Package { path } => {
+            let path = path
+                .unwrap_or_else(|| env::current_dir().expect("Could not get current directory"));
+            handle_package_command(path);
         }
-        Cli::Publish { remote, build } => {
-            handle_publish_command(
-                &mut user_config,
-                user_config_dir,
-                remote,
-                build.unwrap_or(true),
-            );
+        Cli::Publish { remote } => {
+            let path = env::current_dir().expect("Could not get current directory");
+            handle_publish_command(path, &mut user_config, user_config_dir, remote);
         }
     }
 }
@@ -164,6 +165,8 @@ fn main() {
 pub struct PluginMetadata {
     name: String,
     version: Version,
+    build: Option<String>,
+    files: Option<Vec<String>>,
 }
 
 impl PluginMetadata {
@@ -173,5 +176,18 @@ impl PluginMetadata {
             name = self.name,
             version = self.version
         )
+    }
+
+    fn read_from_dir(path: &Path) -> PluginMetadata {
+        let metadata_path = path.join("plugin.json");
+
+        if metadata_path.exists() {
+            let file = File::open(metadata_path).unwrap();
+            let metadata: PluginMetadata = serde_json::from_reader(file).unwrap();
+            metadata
+        } else {
+            println!("Plugin metadata not found");
+            process::exit(1);
+        }
     }
 }
