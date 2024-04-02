@@ -13,10 +13,14 @@ pub fn handle_package_command(path: PathBuf) -> PluginMetadata {
     let metadata = PluginMetadata::read_from_dir(&path);
 
     println!(
-        "Creating archive for plugin \"{}\" with version \"{}\"",
+        "Building plugin \"{}\" with version \"{}\"",
         metadata.name, metadata.version
     );
     build_plugin(&path, &metadata);
+    println!(
+        "Creating archive for plugin \"{}\" with version \"{}\"",
+        metadata.name, metadata.version
+    );
     create_archive(path.join("build"), &metadata);
     println!("{}", "Done!".green().bold());
     metadata
@@ -55,7 +59,7 @@ fn build_plugin(path: &Path, metadata: &PluginMetadata) {
         running.wait().unwrap();
     } else {
         let mut running = Command::new("bun")
-            .args(["build", &metadata.main, "--outdir", "./build"])
+            .args(["build", &metadata.main, "--outdir=./build"])
             .current_dir(path)
             .spawn()
             .soft_expect("Could not build plugin");
