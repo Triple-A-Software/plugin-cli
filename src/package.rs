@@ -6,6 +6,7 @@ use std::{
 
 use ignore::Walk;
 use owo_colors::OwoColorize;
+use sha2::{Digest, Sha256};
 
 use crate::{utils::SoftPanic, PluginMetadata};
 
@@ -83,4 +84,38 @@ fn build_plugin(path: &Path, metadata: &PluginMetadata) {
             }
         }
     }
+
+    let built_files = fs::read_dir(&build).unwrap();
+    let mut new_main = None;
+    for file in built_files {
+        let path = file.unwrap().path();
+        if path.file_name().unwrap() == "plugin.json" || path.file_name().unwrap() == "readme.md" {
+            continue;
+        }
+
+        let mut hasher = Sha256::new();
+        let mut file = File::open(&path).unwrap();
+        std::io::copy(&mut file, &mut hasher).unwrap();
+        let result = hasher.finalize();
+        let new_file_name = format!(
+            "{}-{:x}.{}",
+            path.file_stem().unwrap().to_str().unwrap(),
+            result,
+            path.extension().unwrap().to_str().unwrap()
+        );
+        if path.file_name().unwrap().to_str().unwrap() == metadata.main {
+            new_main = Some(new_file_name.clone());
+        }
+        fs::rename(&path, path.parent().unwrap().join(&new_file_name)).unwrap();
+    }
+
+    let new_metadata = PluginMetadata {
+        main: new_main.unwrap(),
+        ..metadata.clone()
+    };
+    fs::write(
+        build.join("plugin.json"),
+        serde_json::to_string_pretty(&new_metadata).unwrap(),
+    )
+    .unwrap();
 }

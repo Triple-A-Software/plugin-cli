@@ -161,7 +161,7 @@ fn main() {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PluginMetadata {
     name: String,
     version: Version,
