@@ -55,7 +55,7 @@ fn build_plugin(path: &Path, metadata: &PluginMetadata) {
         running.wait().unwrap();
     } else {
         let mut running = Command::new("bun")
-            .args(["build", ".", "--outdir", "./build"])
+            .args(["build", &metadata.main, "--outdir", "./build"])
             .current_dir(path)
             .spawn()
             .soft_expect("Could not build plugin");

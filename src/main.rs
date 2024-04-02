@@ -165,6 +165,7 @@ fn main() {
 pub struct PluginMetadata {
     name: String,
     version: Version,
+    main: String,
     build: Option<String>,
     files: Option<Vec<String>>,
 }
