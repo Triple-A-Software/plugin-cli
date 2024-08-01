@@ -10,6 +10,8 @@ use sha2::{Digest, Sha256};
 
 use crate::{utils::SoftPanic, PluginMetadata, PluginMetadataType};
 
+const BUILD_DIR: &str = ".plugin-build";
+
 pub fn handle_package_command(path: PathBuf) -> PluginMetadata {
     let metadata = PluginMetadata::read_from_dir(&path);
 
@@ -22,7 +24,7 @@ pub fn handle_package_command(path: PathBuf) -> PluginMetadata {
         "Creating archive for plugin \"{}\" with version \"{}\"",
         metadata.name, metadata.version
     );
-    create_archive(path.join("build"), &metadata);
+    create_archive(path.join(BUILD_DIR), &metadata);
     println!("{}", "Done!".green().bold());
     metadata
 }
@@ -48,11 +50,11 @@ fn create_archive(path: PathBuf, metadata: &PluginMetadata) {
 }
 
 fn build_plugin(path: &Path, metadata: &PluginMetadata) {
-    if path.join("build").exists() {
-        fs::remove_dir_all(path.join("build")).unwrap();
+    if path.join(BUILD_DIR).exists() {
+        fs::remove_dir_all(path.join(BUILD_DIR)).unwrap();
     }
     let build_command = &metadata.build;
-    fs::create_dir_all(path.join("build")).unwrap();
+    fs::create_dir_all(path.join(BUILD_DIR)).unwrap();
     if let Some(build_command) = build_command {
         let mut build = build_command.split_whitespace();
         let mut running = Command::new(build.next().unwrap())
@@ -64,7 +66,7 @@ fn build_plugin(path: &Path, metadata: &PluginMetadata) {
     }
     let plugin_json = path.join("plugin.json");
     let readme_md = path.join("readme.md");
-    let build = path.join(".plugin-build");
+    let build = path.join(BUILD_DIR);
     std::fs::copy(plugin_json, build.join("plugin.json")).soft_expect("plugin.json file not found");
     std::fs::copy(readme_md, build.join("readme.md")).soft_expect("readme.md file not found");
 
