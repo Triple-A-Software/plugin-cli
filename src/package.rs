@@ -124,9 +124,6 @@ fn build_plugin(path: &Path, metadata: &PluginMetadata) {
             )
             .unwrap();
         }
-        PluginMetadataType::Service { bin, .. } => {
-            std::fs::copy(bin, build.join(bin))
-                .soft_expect("Couldn't copy plugin binary to output directory");
-        }
+        PluginMetadataType::Service { .. } => {}
     }
 }
