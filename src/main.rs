@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::path::Path;
@@ -165,9 +166,42 @@ fn main() {
 pub struct PluginMetadata {
     name: String,
     version: Version,
-    main: String,
     build: Option<String>,
     files: Option<Vec<String>>,
+    #[serde(flatten)]
+    ty: PluginMetadataType,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum PluginMetadataType {
+    Module {
+        main: String,
+    },
+    Service {
+        bin: String,
+        routes: HashMap<String, Route>,
+    },
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum Route {
+    Page {
+        layout: Layout,
+    },
+    Api {
+        // TODO:
+    },
+    File {
+        // TODO:
+    },
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct Layout {
+    name: String,
+    slot: String,
 }
 
 impl PluginMetadata {
