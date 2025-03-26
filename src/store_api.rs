@@ -2,8 +2,9 @@ use keyring::Entry;
 use reqwest::blocking::multipart;
 use serde::Deserialize;
 use serde_json::json;
+use shared::plugin_system::PluginManifest;
 
-use crate::{utils::SoftPanic, PluginMetadata};
+use crate::{utils::SoftPanic, LoadMetadata};
 
 pub struct LoggedIn;
 pub struct NotLoggedIn;
@@ -61,10 +62,10 @@ impl Client<NotLoggedIn> {
 }
 
 impl Client<LoggedIn> {
-    pub fn publish_plugin(&self, metadata: &PluginMetadata) -> Result<(), ClientError> {
+    pub fn publish_plugin(&self, metadata: &PluginManifest) -> Result<(), ClientError> {
         let name = metadata.name.clone();
         let form = multipart::Form::new()
-            .text("id", name)
+            .text("id", name.to_string())
             .text("version", metadata.version.to_string())
             .file("file", metadata.archive_name())
             .expect("Failed to open archive file");

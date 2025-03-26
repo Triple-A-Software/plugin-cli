@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::path::Path;
@@ -17,9 +16,7 @@ use owo_colors::colors::*;
 use owo_colors::OwoColorize;
 use package::handle_package_command;
 use publish::handle_publish_command;
-use semver::Version;
-use serde::Deserialize;
-use serde::Serialize;
+use shared::plugin_system::PluginManifest;
 
 use crate::command::Cli;
 
@@ -162,49 +159,12 @@ fn main() {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PluginMetadata {
-    name: String,
-    version: Version,
-    build: Option<String>,
-    files: Option<Vec<String>>,
-    #[serde(flatten)]
-    ty: PluginMetadataType,
+pub trait LoadMetadata {
+    fn archive_name(&self) -> String;
+    fn read_from_dir(path: &Path) -> Self;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "type", rename_all = "lowercase")]
-pub enum PluginMetadataType {
-    Module {
-        main: String,
-    },
-    Service {
-        bin: String,
-        routes: HashMap<String, Route>,
-    },
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug)]
-#[serde(tag = "type", rename_all = "lowercase")]
-pub enum Route {
-    Page {
-        layout: Layout,
-    },
-    Api {
-        // TODO:
-    },
-    File {
-        // TODO:
-    },
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug)]
-pub struct Layout {
-    name: String,
-    slot: String,
-}
-
-impl PluginMetadata {
+impl LoadMetadata for PluginManifest {
     fn archive_name(&self) -> String {
         format!(
             "{name}-{version}.tar.gz",
@@ -213,12 +173,12 @@ impl PluginMetadata {
         )
     }
 
-    fn read_from_dir(path: &Path) -> PluginMetadata {
+    fn read_from_dir(path: &Path) -> PluginManifest {
         let metadata_path = path.join("plugin.json");
 
         if metadata_path.exists() {
             let file = File::open(metadata_path).unwrap();
-            let metadata: PluginMetadata = serde_json::from_reader(file).unwrap();
+            let metadata: PluginManifest = serde_json::from_reader(file).unwrap();
             metadata
         } else {
             println!("Plugin metadata not found");
