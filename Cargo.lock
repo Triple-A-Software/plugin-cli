@@ -1267,7 +1267,7 @@ dependencies = [
 [[package]]
 name = "grpc_client"
 version = "0.1.0"
-source = "git+https://git.aaa-soft.net/CMS/Radiant.git#30c5fca11cd0f4acc8f5d6bcf8b3028f7e4fcb47"
+source = "git+https://git.aaa-soft.net/CMS/Radiant.git?branch=fix%2Fpluginsystem-rework-improvements#af624da32c8986528eae35a19d424fbd052a2315"
 dependencies = [
  "anyhow",
  "prost",
@@ -1967,7 +1967,7 @@ checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 [[package]]
 name = "macros"
 version = "0.1.0"
-source = "git+https://git.aaa-soft.net/CMS/Radiant.git#30c5fca11cd0f4acc8f5d6bcf8b3028f7e4fcb47"
+source = "git+https://git.aaa-soft.net/CMS/Radiant.git?branch=fix%2Fpluginsystem-rework-improvements#af624da32c8986528eae35a19d424fbd052a2315"
 dependencies = [
  "convert_case",
  "darling",
@@ -3132,7 +3132,7 @@ dependencies = [
 [[package]]
 name = "shared"
 version = "0.1.0"
-source = "git+https://git.aaa-soft.net/CMS/Radiant.git#30c5fca11cd0f4acc8f5d6bcf8b3028f7e4fcb47"
+source = "git+https://git.aaa-soft.net/CMS/Radiant.git?branch=fix%2Fpluginsystem-rework-improvements#af624da32c8986528eae35a19d424fbd052a2315"
 dependencies = [
  "anyhow",
  "async-trait",

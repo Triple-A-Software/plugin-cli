@@ -39,4 +39,4 @@ sha2 = "0.10"
 tar = "0.4"
 thiserror = "2"
 
-shared = { git = "https://git.aaa-soft.net/CMS/Radiant.git" }
+shared = { git = "https://git.aaa-soft.net/CMS/Radiant.git", branch = "fix/pluginsystem-rework-improvements" }

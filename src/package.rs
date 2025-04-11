@@ -1,6 +1,5 @@
 use std::{fs::File, path::PathBuf};
 
-use ignore::Walk;
 use owo_colors::OwoColorize;
 use shared::plugin_system::PluginManifest;
 
@@ -22,18 +21,21 @@ fn create_archive(path: PathBuf, metadata: &PluginManifest) {
     let archive = File::create(metadata.archive_name()).unwrap();
     let enc = flate2::write::GzEncoder::new(archive, flate2::Compression::default());
     let mut tar = tar::Builder::new(enc);
-    for entry in Walk::new(&path) {
-        match entry {
-            Ok(entry) => {
-                let entry_path = entry.path();
-                if entry_path.is_dir() {
-                    continue;
-                }
-                tar.append_path_with_name(entry_path, entry_path.strip_prefix(&path).unwrap())
-                    .unwrap();
+    for pattern in &metadata.include_files {
+        for entry in glob::glob(pattern).unwrap().flatten() {
+            let entry = entry.canonicalize().unwrap();
+            if entry.is_dir() {
+                continue;
             }
-            Err(err) => println!("Error: {}", err),
+            tar.append_path_with_name(&entry, entry.strip_prefix(&path).unwrap())
+                .unwrap();
         }
+    }
+    tar.append_path_with_name(path.join("plugin.json"), "plugin.json")
+        .unwrap();
+    let readme_path = path.join("readme.md");
+    if readme_path.exists() {
+        tar.append_path_with_name(readme_path, "readme.md").unwrap();
     }
     tar.finish().unwrap();
 }
