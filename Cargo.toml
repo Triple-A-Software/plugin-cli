@@ -38,5 +38,8 @@ serde_json = "1"
 sha2 = "0.10"
 tar = "0.4"
 thiserror = "2"
+fs_extra = "1"
+strum = "0.27"
+strum_macros = "0.27"
 
 shared = { git = "https://git.aaa-soft.net/CMS/Radiant.git", branch = "fix/pluginsystem-rework-improvements" }

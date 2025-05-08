@@ -1,4 +1,5 @@
 use std::env;
+use std::fmt::Display;
 use std::fs::File;
 use std::path::Path;
 use std::path::PathBuf;
@@ -8,15 +9,20 @@ use std::process::Command;
 use clap::Parser;
 use config::Config;
 use config::ConfigDir;
+use fs_extra::dir::CopyOptions;
 use ignore::overrides::OverrideBuilder;
 use ignore::Walk;
 use ignore::WalkBuilder;
+use inquire::Select;
 use inquire::{Confirm, Text};
 use owo_colors::colors::*;
 use owo_colors::OwoColorize;
 use package::handle_package_command;
 use publish::handle_publish_command;
+use serde::Serialize;
 use shared::plugin_system::PluginManifest;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 use crate::command::Cli;
 
@@ -28,6 +34,40 @@ pub mod store_api;
 pub mod utils;
 
 const TEMPLATE_REPO: &str = "https://github.com/Triple-A-Software/plugin-template";
+
+#[derive(Serialize, Eq, PartialEq, EnumIter)]
+#[serde(rename_all = "kebab-case")]
+enum LanguageOption {
+    Rust,
+    Typescript,
+    Python,
+    Php,
+    Go,
+}
+
+impl Display for LanguageOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LanguageOption::Rust => f.write_str("Rust"),
+            LanguageOption::Typescript => f.write_str("Typescript"),
+            LanguageOption::Python => f.write_str("Python"),
+            LanguageOption::Php => f.write_str("PHP"),
+            LanguageOption::Go => f.write_str("Go"),
+        }
+    }
+}
+
+impl LanguageOption {
+    fn to_dir_name(&self) -> &'static str {
+        match self {
+            LanguageOption::Rust => "rust",
+            LanguageOption::Typescript => "typescript",
+            LanguageOption::Python => "python",
+            LanguageOption::Php => "php",
+            LanguageOption::Go => "go",
+        }
+    }
+}
 
 fn main() {
     let command = Cli::parse();
@@ -52,7 +92,24 @@ fn main() {
                 .unwrap_or(true);
 
             let git_template = git_template.unwrap_or(true);
-            let template = template.unwrap_or(TEMPLATE_REPO.to_string());
+            let (template, language) = if let Some(template) = template {
+                (template, None)
+            } else {
+                let language = Select::new(
+                    "Language",
+                    vec![
+                        LanguageOption::Rust,
+                        LanguageOption::Typescript,
+                        LanguageOption::Go,
+                        LanguageOption::Python,
+                        LanguageOption::Php,
+                    ],
+                )
+                .prompt()
+                .expect("You need to select a programming language");
+
+                (TEMPLATE_REPO.to_string(), Some(language))
+            };
 
             println!();
             println!("Copying code for plugin \"{}\"", name.bold());
@@ -106,7 +163,19 @@ fn main() {
                 }
             }
             // substitute project-name into files
-            let globals = liquid::object!({ "plugin_name": &name, "project_name": &name });
+            let globals = liquid::object!({ "plugin_name": &name, "project_name": &name, "language": language });
+
+            // the language is only set when using the default template repo
+            // remove all files not for this language and move the files from the languge specific
+            // folder into the root
+            if let Some(ref language) = language {
+                for option in LanguageOption::iter() {
+                    if *language != option {
+                        std::fs::remove_dir_all(option.to_dir_name()).unwrap();
+                    }
+                }
+                fs_extra::dir::move_dir(language.to_dir_name(), ".", &CopyOptions::new()).unwrap();
+            }
             for entry in Walk::new(&name).filter_map(Result::ok) {
                 if entry.file_type().unwrap().is_dir() {
                     continue;
@@ -115,7 +184,12 @@ fn main() {
                 let template_parser = liquid::ParserBuilder::with_stdlib().build().unwrap();
                 let template = template_parser.parse(&contents).unwrap();
                 let output = template.render(&globals).unwrap();
-                std::fs::write(entry.path(), output).unwrap();
+                let generated_file_name = if entry.path().ends_with(".liquid") {
+                    entry.path().with_extension("")
+                } else {
+                    entry.path().to_path_buf()
+                };
+                std::fs::write(generated_file_name, output).unwrap();
             }
 
             println!("{}", "Done!".green().bold());
@@ -139,12 +213,18 @@ fn main() {
                 "cd".italic().yellow(),
                 name
             );
-            println!(
-                "{} {} {}",
-                "$".fg::<xterm::Gray>(),
-                "bun".italic().yellow(),
-                "install".red()
-            );
+            match language {
+                Some(LanguageOption::Typescript) => {
+                    println!(
+                        "{} {} {}",
+                        "$".fg::<xterm::Gray>(),
+                        "bun".italic().yellow(),
+                        "install".red()
+                    );
+                }
+                Some(_) => {}
+                None => {}
+            }
             println!("{}", "–––––––––––––––––––––––––––".fg::<xterm::Gray>());
         }
         Cli::Package { path } => {
