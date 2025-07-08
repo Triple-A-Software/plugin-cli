@@ -42,4 +42,4 @@ fs_extra = "1"
 strum = "0.27"
 strum_macros = "0.27"
 
-shared = { git = "https://git.aaa-soft.net/CMS/Radiant.git", branch = "fix/pluginsystem-rework-improvements" }
+shared = { git = "https://git.aaa-soft.net/CMS/neleto.git", branch = "main" }
