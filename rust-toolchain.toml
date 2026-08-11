@@ -1,0 +1,4 @@
+[toolchain]
+# We need to use nightly to be able to use the allocator-api feature of
+# bumpalo, which only works on nightly.
+channel = "nightly"
