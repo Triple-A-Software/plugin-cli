@@ -34,6 +34,14 @@ Publish Package on the plugin store
 Package the plugin into a distributable package
 `plugin-cli package`
 
+# Docs
+
+- [Plugin API routing & common pitfalls](docs/plugin-api-routing.md) — the
+  two-level `/api` prefix (the usual cause of 404s), the canonical admin-UI
+  fetch helper, why a proxy 404 is never about the HTTP method, and notes on
+  calling external APIs. **Read this before wiring an admin UI to your `api`
+  endpoints.**
+
 
 
 
