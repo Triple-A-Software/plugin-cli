@@ -73,10 +73,9 @@ Each `api` entry in `plugin.json` can restrict who may call it:
 > **`allowed_roles` is deprecated and silently ignored.** It is not part of the
 > manifest schema, and the backend never reads it. A route that declares only
 > `allowed_roles` has **no authorization check at all** — it is open to every
-> logged-in user, regardless of the roles you listed. Migrate old plugins to
-> `allowed_permissions`. (Some shipped plugins — `google-reviews`,
-> `products-service`, `onoffice-immobilien` — still use `allowed_roles`; their
-> role lists currently have no effect.)
+> logged-in user, regardless of the roles you listed. If you maintain an older
+> plugin that still declares `allowed_roles`, migrate it — the role list has no
+> effect until you do.
 
 The `ui` endpoint is separate: it is always restricted to users who can manage
 plugins, and that is not configurable.
